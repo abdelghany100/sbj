@@ -23,7 +23,7 @@ router
   .post(verifyTokenAndAdminOrSuper, CreateOrderCtr)
   .get(verifyToken, getAllOrders);
 
-router.get("/:idOrder", validateObjectid, verifyToken, getSingleOrderCtr);
+router.get("/:idOrder", verifyToken, getSingleOrderCtr);
 router.delete(
   "/:idOrder",
   validateObjectid,

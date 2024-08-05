@@ -99,8 +99,8 @@ module.exports.getSingleOrderCtr = catchAsyncErrors(async (req, res, next) => {
   if (!user) {
     next(new AppError("this user not found", 400));
   }
-  if (req.user.id === order.deliveryName._id.toString() || req.user.isAdmin) {
-    return res.status(200).json(order);
+  if (req.user.id === order.deliveryName._id.toString() || req.user.isAdmin || req.user.superAdmin) {
+    return res.status(200).json({order});
   } else {
     next(new AppError("not allowed, only delivery himself or Admin", 400));
   }
