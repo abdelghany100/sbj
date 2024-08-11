@@ -37,9 +37,7 @@ module.exports.registerUserCtr = catchAsyncErrors(async (req, res, next) => {
   }
 
   if (req.body.password != req.body.passwordConfirm) {
-    return res
-      .status(500)
-      .json({ message: "password and passwordConfirm are not the same" });
+    return next(new AppError("password and passwordConfirm are not the same", 500));
   }
 
   user = new User({
@@ -120,26 +118,18 @@ exports.forgetPasswordCtr = catchAsyncErrors(async (req, res, next) => {
   }
   //Generate the random token
   const resetToken = user.generateRandomToken();
-  console.log(resetToken);
+  // console.log(resetToken);
+  // console.log(user.passwordResetToken);
+  
   await user.save({ validateBeforeSave: false });
-  const message = `Hello, ${user.name}
-  we've recieved request from you to reset your account password
-  please send POST request to the following URL with your new password and password confirmation
-  Reset URL: ${req.protocol}://${req.get(
-    "host"
-  )}/users/reset-password/${resetToken}
-  if you did not request that, please ignore this email
-  NOTE this link is only valid for 10 Mins
-  Thanks
-  SBJ Family 
-  `;
 
-  await sendEmail({
-    to: user.email,
-    text: message,
 
-    subject: "Reset Password <Valid for only 10 Mins>",
-  });
+  const data = {
+    name: user.username,
+    email:req.body.email,
+    otp:resetToken,
+  };
+  await sendEmail(req.body.email, "spj family", data);
 
   res.status(200).json({
     status: "success",
@@ -150,6 +140,29 @@ exports.forgetPasswordCtr = catchAsyncErrors(async (req, res, next) => {
 });
 
 /**-------------------------------------
+ * @desc   verify otp
+ * @router /api/auth/verify-otp
+ * @method POST
+ * @access public
+ -------------------------------------*/
+
+exports.verifyOtpCtr = catchAsyncErrors(async (req, res, next) => {
+  let otp = req.body.otp;
+  // const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+  // Get the user based on the token
+
+  const user = await User.findOne({ passwordResetToken: otp });
+  if (!user) {
+    return next(new AppError("invalid otp", 400));
+  }
+  
+  // If the token has not expired, and there is user => set the new password
+  if (user.passwordResetTokenExpire.getTime() < Date.now()) {
+    return next(new AppError("reset password otp expired", 400));
+  }
+  res.status(200).json({message:"success"})
+})
+/**-------------------------------------
  * @desc   reset password
  * @router /api/auth/reset-password
  * @method POST
@@ -157,27 +170,24 @@ exports.forgetPasswordCtr = catchAsyncErrors(async (req, res, next) => {
  -------------------------------------*/
 
 exports.resetPasswordCtr = catchAsyncErrors(async (req, res, next) => {
-  let token = req.params.token;
-  const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
-  // Get the user based on the token
-  const user = await User.findOne({ passwordResetToken: hashedToken });
+  const user = await User.findOne({email: req.body.email});
   if (!user) {
-    return next(new AppError("invalid reset password token", 400));
+    return next(new AppError("invalid otp", 400));
   }
-  // If the token has not expired, and there is user => set the new password
-  if (user.passwordResetTokenExpire.getTime() < Date.now()) {
-    return next(new AppError("reset password token expired", 400));
+  
+  if (req.body.password != req.body.passwordConfirm) {
+    return next(new AppError("password and passwordConfirm are not the same", 500));
   }
-  // Update changedPasswrodAt field of the document for the user
+  
   user.password = req.body.password;
   user.passwordConfirm = req.body.passwordConfirm;
   user.passwordResetToken = user.passwordResetTokenExpire = undefined;
-
+  
   await user.save();
   console.log(user);
   // Log the user in => send JWT
   token = await user.generateAuthToken();
-
+  
   res.status(200).json({
     status: "success",
     message: "password has been updated successfully",

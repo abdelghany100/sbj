@@ -22,8 +22,7 @@ mongoose
     console.log(err);
   });
 
-  
-  app.use(cors());
+app.use(cors());
 
 // Add compression middleware
 app.use(compression());
@@ -43,7 +42,7 @@ app.use("/api/notifications", require("./routes/notivicationRoute"));
 app.use(notFound);
 
 app.use(errorHandler);
- 
+
 const PORT = process.env.PORT || 8000;
 app.listen(PORT, () => {
   console.log("Server has started on port 8000");

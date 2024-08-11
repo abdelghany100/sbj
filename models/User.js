@@ -11,11 +11,11 @@ const UserSchema = new mongoose.Schema(
   {
     username: {
       type: String,
-      required: true,
+      // required: true,
       trim: true,
       minlength: 2,
       maxlength: 100,
-      unique: true,
+      // unique: true,
     },
     email: {
       type: String,
@@ -44,9 +44,9 @@ const UserSchema = new mongoose.Schema(
     },
     phone: {
       type: String,
-      required: true,
+      // required: true,
       trim: true,
-      unique: true,
+      // unique: true,
     },
     profilePhoto: {
       type: Object,
@@ -99,9 +99,9 @@ UserSchema.pre("save", async function (next) {
 });
 
 UserSchema.methods.generateRandomToken = function () {
-  const token = crypto.randomBytes(32).toString("hex");
-  const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
-  this.passwordResetToken = hashedToken;
+  const token = crypto.randomInt(1000, 10000).toString();
+  // const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+  this.passwordResetToken = token;
   this.passwordResetTokenExpire = Date.now() + 10 * 60 * 1000;
   return token;
 };
