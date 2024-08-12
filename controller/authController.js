@@ -186,12 +186,12 @@ exports.resetPasswordCtr = catchAsyncErrors(async (req, res, next) => {
   await user.save();
   console.log(user);
   // Log the user in => send JWT
-  token = await user.generateAuthToken();
+  // token = await user.generateAuthToken();
   
   res.status(200).json({
     status: "success",
     message: "password has been updated successfully",
-    token,
+    
   });
 });
 
