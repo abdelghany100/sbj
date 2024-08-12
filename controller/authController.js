@@ -172,7 +172,7 @@ exports.verifyOtpCtr = catchAsyncErrors(async (req, res, next) => {
 exports.resetPasswordCtr = catchAsyncErrors(async (req, res, next) => {
   const user = await User.findOne({email: req.body.email});
   if (!user) {
-    return next(new AppError("invalid otp", 400));
+    return next(new AppError("user not found", 400));
   }
   
   if (req.body.password != req.body.passwordConfirm) {
@@ -194,3 +194,5 @@ exports.resetPasswordCtr = catchAsyncErrors(async (req, res, next) => {
     token,
   });
 });
+
+
