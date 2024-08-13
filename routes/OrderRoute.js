@@ -26,14 +26,13 @@ router
 router.get("/:idOrder", verifyToken, getSingleOrderCtr);
 router.delete(
   "/:idOrder",
-  validateObjectid,
-  verifyTokenAndAdmin,
+  
+  verifyTokenAndAdminOrSuper,
   deleteOrderCtr
 );
 router.patch("/change-status/:idOrder", verifyToken, updateStateOrderCtr);
 router.patch(
   "/change-delivery/:idOrder",
-  validateObjectid,
   verifyToken,
   updateDeliveryOrderCtr
 );

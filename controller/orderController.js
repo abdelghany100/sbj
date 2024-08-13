@@ -99,7 +99,7 @@ module.exports.getSingleOrderCtr = catchAsyncErrors(async (req, res, next) => {
   if (!user) {
     next(new AppError("this user not found", 400));
   }
-  if (req.user.id === order.deliveryName._id.toString() || req.user.isAdmin || req.user.superAdmin) {
+  if (req.user.id === order.deliveryName._id.toString() || req.user.id === order.adminCreator._id.toString()   || req.user.superAdmin) {
     return res.status(200).json({order});
   } else {
     next(new AppError("not allowed, only delivery himself or Admin", 400));
@@ -116,6 +116,11 @@ module.exports.getSingleOrderCtr = catchAsyncErrors(async (req, res, next) => {
 module.exports.deleteOrderCtr = catchAsyncErrors(async (req, res, next) => {
   const order = await Order.findById(req.params.idOrder);
 
+  if(req.user.id === order.deliveryName._id.toString()  || req.user.superAdmin) {
+    next(new AppError("not allowed, only Admin creator or Admin", 400));
+
+  }
+ 
   if (!order) {
     next(new AppError("this order not found", 400));
   }
@@ -215,7 +220,7 @@ module.exports.updateStateOrderCtr = catchAsyncErrors(
  * @desc   update delivery order 
  * @router /api/change-delivery/:idOrder
  * @method PATCH
- * @access private (only delivery himself) 
+ * @access private (only delivery himself or superAdmin) 
  -------------------------------------*/
 module.exports.updateDeliveryOrderCtr = catchAsyncErrors(
   async (req, res, next) => {

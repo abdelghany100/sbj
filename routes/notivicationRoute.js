@@ -3,11 +3,12 @@ const {
     verifyTokenAndAdmin,
     verifyToken,
     verifyTokenAndAdminOrUser,
+    verifyTokenAndAdminOrSuper,
   } = require("../middlewares/verifyToken");
   const {getAllNotificationsCtr , deleteNotificationsCtr} = require("../controller/NotificationController");
 const { validateLoginUser } = require("../models/User");
 
-router.route("/").get(verifyTokenAndAdmin , getAllNotificationsCtr)
-router.route("/:id").delete( verifyTokenAndAdmin , deleteNotificationsCtr)
+router.route("/").get(verifyTokenAndAdminOrSuper , getAllNotificationsCtr)
+router.route("/:id").delete( verifyTokenAndAdminOrSuper , deleteNotificationsCtr)
 
 module.exports = router;

@@ -19,11 +19,11 @@ const validateObjectid = require("../middlewares/validateObjectid.js");
 
 router
   .route("/:id")
-  .get(validateObjectid ,verifyTokenAndAdminOrUser, verifyTokenAndSuperAdmin, getSingleUserCtr)
+  .get(validateObjectid ,verifyTokenAndAdminOrUser, getSingleUserCtr)
   .delete( validateObjectid,verifyTokenAndAdminOrSuper, deleteUserCtr);
 router  
   .route("/")
-  .get(verifyTokenAndAdmin, getAllUsersCtr)
+  .get(verifyTokenAndAdminOrSuper, getAllUsersCtr)
   .patch(verifyToken, updateUserCtr);
 
 
