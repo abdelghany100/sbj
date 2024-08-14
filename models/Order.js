@@ -62,7 +62,7 @@ const OrderSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
-    adminCreator:{
+    adminCreator: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
@@ -71,12 +71,13 @@ const OrderSchema = new mongoose.Schema(
       type: String,
       enum: {
         values: [
-          "no answer",
+          "waiting",
           "delivered",
           "under treatment",
           "delayed",
           "canceled",
           "coming back",
+          "resend",
         ],
         message:
           "a status  must be either (no answer, delivered, under treatment , delayed , canceled , coming back)",
@@ -92,7 +93,7 @@ const OrderSchema = new mongoose.Schema(
     timestamps: true,
     toJSON: { virtuals: true },
     toObject: { virtuals: true },
-  }
+  } 
 );
 
 //  Validate CREATE  ORDER

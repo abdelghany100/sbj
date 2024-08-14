@@ -1,6 +1,9 @@
 const catchAsyncErrors = require("../utils/catchAsyncErrors");
 const AppError = require("../utils/AppError");
 const { User } = require("../models/User");
+const fs = require("fs");
+const { cloudinaryUploadImage, cloudinaryRemoveImage } = require("../utils/cloudinary");
+const path = require("path");
 
 /**-------------------------------------
  * @desc get single User 
@@ -101,3 +104,50 @@ module.exports.changeWalletCtr = catchAsyncErrors(async (req, res, next) => {
 
   return res.status(200).json(updatedUser);
 });
+
+
+/**-------------------------------------
+ * @desc   Profile Photo Upload 
+ * @router /api/users/profile/profile-photo-upload
+ * @method PUT
+ * @access private(only logged in user )
+ -------------------------------------*/
+ module.exports.profilePhotoUploadCtr = catchAsyncErrors(async (req,res , next)=>{
+  // 1. VALIDATEION
+  if(!req.file){
+    res.status(400).json({message:"no file provided"})
+  }
+  // 2. GET THE PATH TO THE IMAGE
+    const imagePath = `/images/${req.file.filename}`
+  // 3. Upload to cloudinary
+    // const result = await cloudinaryUploadImage(imagePath);
+    
+  // 4. Get the user form DB
+    const user = await User.findById(req.user.id)
+
+
+  // 5. Delete the old profile if exist
+    if(user.profilePhoto ){
+      await cloudinaryRemoveImage(user.profilePhoto.publicId)
+      const oldImagePath = path.join(__dirname, `..${user.profilePhoto}`);
+    if (fs.existsSync(oldImagePath)) {
+      fs.unlinkSync(oldImagePath); 
+    }
+  }
+
+
+
+
+
+ 
+   user.profilePhoto = imagePath;
+   await user.save({ validateBeforeSave: false });
+
+  // 7. Send response to client 
+  res.status(200).json({message:"your profile photo uploaded successfully" , 
+    user
+  })
+
+  // 8. Remove image form the server
+  fs.unlinkSync(imagePath)
+ })

@@ -236,7 +236,7 @@ module.exports.updateDeliveryOrderCtr = catchAsyncErrors(
     }
     // console.log(req.user.id)
     // console.log(order.deliveryName._id.toString())
-    if (req.user.id === order.deliveryName._id.toString() || req.user.superAdmin) {
+    if (req.user.id === order.deliveryName._id.toString() || req.user.superAdmin || req.user.isAdmin) {
       const updatedOrder = await Order.findByIdAndUpdate(
         req.params.idOrder,
         { $set: { status: "under treatment" , deliveryName:req.body.deliveryName } },

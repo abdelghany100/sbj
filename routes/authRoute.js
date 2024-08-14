@@ -13,3 +13,5 @@ router.post('/verify-otp', verifyOtpCtr);
 
 
  module.exports = router;
+
+ 

@@ -38,6 +38,7 @@ app.use("/api/auth", require("./routes/authRoute"));
 app.use("/api/order", require("./routes/OrderRoute"));
 app.use("/api/user", require("./routes/userRoute"));
 app.use("/api/notifications", require("./routes/notivicationRoute"));
+app.use("/api/favorites", require("./routes/FavotiteRoute"));
 
 app.use(notFound);
 

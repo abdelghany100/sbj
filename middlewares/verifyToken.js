@@ -64,7 +64,11 @@ function verifyTokenAndOnlyUser(req, res, next) {
 
 function verifyTokenAndAdminOrUser(req, res, next) {
   verifyToken(req, res, () => {
-    if (req.user.id === req.params.id || req.user.isAdmin || req.user.superAdmin) {
+    if (
+      req.user.id === req.params.id ||
+      req.user.isAdmin ||
+      req.user.superAdmin
+    ) {
       next();
     } else {
       return res
@@ -90,5 +94,5 @@ module.exports = {
   verifyTokenAndOnlyUser,
   verifyTokenAndAdminOrUser,
   verifyTokenAndSuperAdmin,
-  verifyTokenAndAdminOrSuper
+  verifyTokenAndAdminOrSuper,
 };
