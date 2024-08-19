@@ -273,9 +273,8 @@ module.exports.updateDeliveryOrderCtr = catchAsyncErrors(
  * @method PATCH
  * @access private (only delivery himself or superAdmin) 
  -------------------------------------*/
- module.exports.getAllOrdersByDateCtr = catchAsyncErrors(
+module.exports.getAllOrdersByDateCtr = catchAsyncErrors(
   async (req, res, next) => {
-
     const now = new Date();
 
     let matchCriteria = {};
@@ -291,19 +290,62 @@ module.exports.updateDeliveryOrderCtr = catchAsyncErrors(
     // تحديد المدة الزمنية بناءً على طلب المستخدم (شهر، شهرين، أو ثلاثة)
     const month = parseInt(req.query.month); // التأكد من وجود هذا الحقل في طلب المستخدم (1, 2, 3)
     const startOfMonth = new Date(now.getFullYear(), now.getMonth() - month, 1);
-    const endOfMonth = new Date(now.getFullYear(), now.getMonth() - month + 1, 0);
+    const endOfMonth = new Date(
+      now.getFullYear(),
+      now.getMonth() - month + 1,
+      0
+    );
 
     if ([1, 2, 3].includes(month)) {
       matchCriteria.createdAt = {
         $gte: startOfMonth,
-        $lt: new Date(endOfMonth.setHours(23, 59, 59, 999))
+        $lt: new Date(endOfMonth.setHours(23, 59, 59, 999)),
       };
     }
 
     console.log(matchCriteria.createdAt);
 
-    const orders = await Order.find({createdAt: matchCriteria.createdAt}).sort({ createdAt: -1 });
-
-    res.json(orders);
+    if (req.query.status) {
+      if (req.user.superAdmin) {
+        const orders = await Order.find({
+          createdAt: matchCriteria.createdAt,
+          status: req.query.status,
+        }).sort({ createdAt: -1 });
+        res.json(orders);
+      } else if (req.user.isAdmin) {
+        const orders = await Order.find({
+          createdAt: matchCriteria.createdAt,
+          status: req.query.status,
+          adminCreator: req.user.id,
+        }).sort({ createdAt: -1 });
+        res.json(orders);
+      } else {
+        const orders = await Order.find({
+          createdAt: matchCriteria.createdAt,
+          status: req.query.status,
+          deliveryName: req.user.id,
+        }).sort({ createdAt: -1 });
+        res.json(orders);
+      }
+    } else {
+      if (req.user.superAdmin) {
+        const orders = await Order.find({
+          createdAt: matchCriteria.createdAt,
+        }).sort({ createdAt: -1 });
+        res.json(orders);
+      } else if (req.user.isAdmin) {
+        const orders = await Order.find({
+          createdAt: matchCriteria.createdAt,
+          adminCreator: req.user.id,
+        }).sort({ createdAt: -1 });
+        res.json(orders);
+      } else {
+        const orders = await Order.find({
+          createdAt: matchCriteria.createdAt,
+          deliveryName: req.user.id,
+        }).sort({ createdAt: -1 });
+        res.json(orders);
+      }
+    }
   }
 );
