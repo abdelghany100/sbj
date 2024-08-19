@@ -8,6 +8,7 @@ const {
   updateOrderCtr,
   updateStateOrderCtr,
   updateDeliveryOrderCtr,
+  getAllOrdersByDateCtr,
 } = require("../controller/orderController");
 const validateObjectid = require("../middlewares/validateObjectid");
 const {
@@ -21,8 +22,10 @@ const {
 router
   .route("/")
   .post(verifyTokenAndAdminOrSuper, CreateOrderCtr)
-  .get(verifyToken, getAllOrders);
+  .get(verifyToken, getAllOrders)
 
+  router.get("/filter-date" , verifyToken , getAllOrdersByDateCtr)
+  
 router.get("/:idOrder", verifyToken, getSingleOrderCtr);
 router.delete(
   "/:idOrder",
@@ -36,4 +39,5 @@ router.patch(
   verifyToken,
   updateDeliveryOrderCtr
 );
+router.patch("/:idOrder" , verifyTokenAndAdminOrSuper , updateOrderCtr)
 module.exports = router;

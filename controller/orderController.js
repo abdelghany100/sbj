@@ -34,7 +34,7 @@ module.exports.CreateOrderCtr = catchAsyncErrors(async (req, res, next) => {
     note: req.body.note,
     deliveryName: req.body.deliveryName,
     total: req.body.count * req.body.unitPrice,
-    adminCreator: req.user.id
+    adminCreator: req.user.id,
   });
   await order.save();
   res.status(201).json({ message: "your order added successfully", order });
@@ -53,12 +53,11 @@ module.exports.getAllOrders = catchAsyncErrors(async (req, res, next) => {
   if (status) {
     if (req.user.superAdmin) {
       orders = await Order.find({ status }).sort({ createdAt: -1 });
-    }
-   else if (req.user.isAdmin) {
-      orders = await Order.find({ status, adminCreator: req.user.id }).sort({ createdAt: -1 });
-    }
-    
-    else {
+    } else if (req.user.isAdmin) {
+      orders = await Order.find({ status, adminCreator: req.user.id }).sort({
+        createdAt: -1,
+      });
+    } else {
       orders = await Order.find({ status, deliveryName: req.user.id }).sort({
         createdAt: -1,
       });
@@ -66,13 +65,11 @@ module.exports.getAllOrders = catchAsyncErrors(async (req, res, next) => {
   } else {
     if (req.user.superAdmin) {
       orders = await Order.find().sort({ createdAt: -1 });
-    }
-   else if (req.user.isAdmin) {
-      orders = await Order.find({ adminCreator: req.user.id}).sort({ createdAt: -1 });
-    }
-    
-    
-    else {
+    } else if (req.user.isAdmin) {
+      orders = await Order.find({ adminCreator: req.user.id }).sort({
+        createdAt: -1,
+      });
+    } else {
       console.log(req.user.id);
       orders = await Order.find({ deliveryName: req.user.id }).sort({
         createdAt: -1,
@@ -99,8 +96,12 @@ module.exports.getSingleOrderCtr = catchAsyncErrors(async (req, res, next) => {
   if (!user) {
     next(new AppError("this user not found", 400));
   }
-  if (req.user.id === order.deliveryName._id.toString() || req.user.id === order.adminCreator._id.toString()   || req.user.superAdmin) {
-    return res.status(200).json({order});
+  if (
+    req.user.id === order.deliveryName._id.toString() ||
+    req.user.id === order.adminCreator._id.toString() ||
+    req.user.superAdmin
+  ) {
+    return res.status(200).json({ order });
   } else {
     next(new AppError("not allowed, only delivery himself or Admin", 400));
   }
@@ -116,11 +117,13 @@ module.exports.getSingleOrderCtr = catchAsyncErrors(async (req, res, next) => {
 module.exports.deleteOrderCtr = catchAsyncErrors(async (req, res, next) => {
   const order = await Order.findById(req.params.idOrder);
 
-  if(req.user.id === order.deliveryName._id.toString()  || req.user.superAdmin) {
+  if (
+    req.user.id === order.deliveryName._id.toString() ||
+    req.user.superAdmin
+  ) {
     next(new AppError("not allowed, only Admin creator or Admin", 400));
-
   }
- 
+
   if (!order) {
     next(new AppError("this order not found", 400));
   }
@@ -137,9 +140,14 @@ module.exports.deleteOrderCtr = catchAsyncErrors(async (req, res, next) => {
  -------------------------------------*/
 module.exports.updateOrderCtr = catchAsyncErrors(async (req, res, next) => {
   const order = await Order.findById(req.params.idOrder);
+  // order = await Order.find({  adminCreator: req.user.id })
 
   if (!order) {
-    next(new AppError("this product not found", 400));
+    next(new AppError("this order not found", 400));
+  }
+
+  if (req.user.isAdmin && req.user.id != order.adminCreator._id.toString()) {
+    next(new AppError("not allowed only admin creator", 401));
   }
 
   const updatedOrder = await Order.findByIdAndUpdate(
@@ -177,13 +185,12 @@ module.exports.updateStateOrderCtr = catchAsyncErrors(
         { $set: { ...req.body } },
         { new: true }
       );
-      if(order.status === req.body.status){
+      if (order.status === req.body.status) {
         // next(new AppError(` order already ${req.body.status} `, 400));
-        message =` order already ${req.body.status} ` ;
-  res.status(404).json({ message });
-  // stop further execution in this callback
-  return;
-
+        message = ` order already ${req.body.status} `;
+        res.status(404).json({ message });
+        // stop further execution in this callback
+        return;
       }
 
       if (req.body.status === "delivered") {
@@ -193,7 +200,7 @@ module.exports.updateStateOrderCtr = catchAsyncErrors(
           { new: true },
           { runValidators: false }
         );
-        
+
         const updatedAdmin = await User.findByIdAndUpdate(
           order.adminCreator._id,
           { $inc: { wallet: +order.total } },
@@ -236,23 +243,67 @@ module.exports.updateDeliveryOrderCtr = catchAsyncErrors(
     }
     // console.log(req.user.id)
     // console.log(order.deliveryName._id.toString())
-    if (req.user.id === order.deliveryName._id.toString() || req.user.superAdmin || req.user.isAdmin) {
+    if (
+      req.user.id === order.deliveryName._id.toString() ||
+      req.user.superAdmin ||
+      req.user.isAdmin
+    ) {
       const updatedOrder = await Order.findByIdAndUpdate(
         req.params.idOrder,
-        { $set: { status: "under treatment" , deliveryName:req.body.deliveryName } },
+        {
+          $set: {
+            status: "under treatment",
+            deliveryName: req.body.deliveryName,
+          },
+        },
         { new: true }
-        
       );
-      
+
       await updatedOrder.save();
-      res.status(200).json(updatedOrder)
-
-    }
-    else{
+      res.status(200).json(updatedOrder);
+    } else {
       next(new AppError("not allowed, only delivery himself ", 400));
-
     }
-    
+  }
+);
 
+/**-------------------------------------
+ * @desc   update delivery order 
+ * @router /api/change-delivery/:idOrder
+ * @method PATCH
+ * @access private (only delivery himself or superAdmin) 
+ -------------------------------------*/
+ module.exports.getAllOrdersByDateCtr = catchAsyncErrors(
+  async (req, res, next) => {
+
+    const now = new Date();
+
+    let matchCriteria = {};
+
+    if (req.user.superAdmin) {
+      matchCriteria = {}; // لا توجد قيود
+    } else if (req.user.isAdmin) {
+      matchCriteria = { adminCreator: req.user.id };
+    } else {
+      matchCriteria = { deliveryName: req.user.id };
+    }
+
+    // تحديد المدة الزمنية بناءً على طلب المستخدم (شهر، شهرين، أو ثلاثة)
+    const month = parseInt(req.query.month); // التأكد من وجود هذا الحقل في طلب المستخدم (1, 2, 3)
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth() - month, 1);
+    const endOfMonth = new Date(now.getFullYear(), now.getMonth() - month + 1, 0);
+
+    if ([1, 2, 3].includes(month)) {
+      matchCriteria.createdAt = {
+        $gte: startOfMonth,
+        $lt: new Date(endOfMonth.setHours(23, 59, 59, 999))
+      };
+    }
+
+    console.log(matchCriteria.createdAt);
+
+    const orders = await Order.find({createdAt: matchCriteria.createdAt}).sort({ createdAt: -1 });
+
+    res.json(orders);
   }
 );

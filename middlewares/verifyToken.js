@@ -17,6 +17,7 @@ function verifyToken(req, res, next) {
       // res.status(401).json({ message: "Invalid token,access denied" });
     }
   } else {
+
     return next(new AppError("no token provided, access denied", 401));
 
     // res.status(401).json({ message: "no token provided, access denied" });
