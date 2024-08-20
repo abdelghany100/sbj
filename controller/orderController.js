@@ -180,11 +180,7 @@ module.exports.updateStateOrderCtr = catchAsyncErrors(
       next(new AppError("this user not found", 400));
     }
     if (req.user.id === order.deliveryName._id.toString()) {
-      const updatedOrder = await Order.findByIdAndUpdate(
-        req.params.idOrder,
-        { $set: { ...req.body } },
-        { new: true }
-      );
+
       if (order.status === req.body.status) {
         // next(new AppError(` order already ${req.body.status} `, 400));
         message = ` order already ${req.body.status} `;
@@ -193,6 +189,11 @@ module.exports.updateStateOrderCtr = catchAsyncErrors(
         return;
       }
 
+      const updatedOrder = await Order.findByIdAndUpdate(
+        req.params.idOrder,
+        { $set: { ...req.body } },
+        { new: true ,runValidators: true}
+      );
       if (req.body.status === "delivered") {
         const updatedUser = await User.findByIdAndUpdate(
           req.user.id,
@@ -211,12 +212,16 @@ module.exports.updateStateOrderCtr = catchAsyncErrors(
         // await updatedUser.save();
       }
 
-      await Notification.create({
+
+       await updatedOrder.save();
+
+      
+       const  newNote= await Notification.create({
         deliveryName: order.deliveryName._id,
         order: order._id,
       });
+console.log()
 
-      await updatedOrder.save();
       res.status(200).json(updatedOrder);
     } else {
       next(new AppError("not allowed, only delivery himself ", 400));
