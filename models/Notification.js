@@ -14,6 +14,10 @@ const NotificationSchema = new mongoose.Schema({
         ref: "Order",
         required: true,
       },
+      status:{
+        type:String,
+        required:true,
+      }
 },{
     timestamps: true,
 })

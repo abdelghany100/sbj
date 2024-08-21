@@ -216,11 +216,12 @@ module.exports.updateStateOrderCtr = catchAsyncErrors(
        await updatedOrder.save();
 
       
-       const  newNote= await Notification.create({
+       const newnote = await Notification.create({
         deliveryName: order.deliveryName._id,
         order: order._id,
+        status:updatedOrder.status,
       });
-console.log()
+console.log(newnote)
 
       res.status(200).json(updatedOrder);
     } else {
