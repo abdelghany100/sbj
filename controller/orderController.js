@@ -115,7 +115,7 @@ module.exports.getSingleOrderCtr = catchAsyncErrors(async (req, res, next) => {
  * @access private (only admin )
  -------------------------------------*/
 module.exports.deleteOrderCtr = catchAsyncErrors(async (req, res, next) => {
-  const order = await Order.findById(req.params.idOrder);
+  const order = await Order.findById(req.body.id);
 
   if (
     req.user.id === order.deliveryName._id.toString() ||
@@ -128,7 +128,7 @@ module.exports.deleteOrderCtr = catchAsyncErrors(async (req, res, next) => {
     next(new AppError("this order not found", 400));
   }
 
-  await Order.findByIdAndDelete(req.params.idOrder),
+  await Order.findByIdAndDelete(req.body.id),
     res.status(200).json({ message: "order delete successful" });
 });
 

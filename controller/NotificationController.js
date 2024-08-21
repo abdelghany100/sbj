@@ -33,11 +33,11 @@ module.exports.getAllNotificationsCtr = catchAsyncErrors(
  -------------------------------------*/
 module.exports.deleteNotificationsCtr = catchAsyncErrors(
   async (req, res, next) => {
-    const notification = await Notification.findById(req.params.id);
+    const notification = await Notification.findById(req.body.id);
     if (!notification) {
       next(new AppError("this notification not found", 400));
     }
-    await Notification.findByIdAndDelete(req.params.id);
+    await Notification.findByIdAndDelete(req.body.id);
     res.status(200).json({ message: "Notification Deleted successfully" });
   }
 );

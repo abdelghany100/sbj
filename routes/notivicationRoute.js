@@ -9,6 +9,6 @@ const {
 const { validateLoginUser } = require("../models/User");
 
 router.route("/").get(verifyTokenAndAdminOrSuper , getAllNotificationsCtr)
-router.route("/:id").delete( verifyTokenAndAdminOrSuper , deleteNotificationsCtr)
+router.route("/").delete( verifyTokenAndAdminOrSuper , deleteNotificationsCtr)
 
 module.exports = router;

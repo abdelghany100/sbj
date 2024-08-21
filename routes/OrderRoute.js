@@ -27,9 +27,7 @@ router
   router.get("/filter-date" , verifyToken , getAllOrdersByDateCtr)
   
 router.get("/:idOrder", verifyToken, getSingleOrderCtr);
-router.delete(
-  "/:idOrder",
-  
+router.delete(  "/",
   verifyTokenAndAdminOrSuper,
   deleteOrderCtr
 );
