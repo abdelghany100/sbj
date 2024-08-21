@@ -3,6 +3,7 @@ const AppError = require("../utils/AppError");
 const { Notification } = require("../models/Notification");
 const { Order } = require("../models/Order");
 const { Favorite } = require("../models/Favorite");
+const { User } = require("../models/User");
 
 /**-------------------------------------
  * @desc   Get all Favorite
@@ -59,4 +60,32 @@ module.exports.addFavoriteCtr = catchAsyncErrors(async (req, res, next) => {
     order: req.params.idOrder,
   });
   res.status(200).json({ message: "add to favorite  successfully" });
+});
+
+
+/**-------------------------------------
+ * @desc   Get single order getSingleOrderCtr
+ * @router /api/product/:idOrder
+ * @method GET
+ * @access private (only admin or user himself)
+ -------------------------------------*/
+ module.exports.getSingleFavoriteCtr = catchAsyncErrors(async (req, res, next) => {
+  const favorite = await Favorite.findById(req.params.idOrder);
+  if (!favorite) {
+    next(new AppError("this order not found in favorite", 400));
+  }
+
+  console.log(favorite.user._id.toString())
+  const user = await User.findById(req.user.id);
+  if (!user) {
+    next(new AppError("this user not found", 400));
+  }
+  if (
+    req.user.id === favorite.user._id.toString() 
+  ) {
+    return res.status(200).json({ favorite });
+  } else {
+    next(new AppError("not allowed, only delivery himself or Admin", 400));
+  }
+  // return order
 });

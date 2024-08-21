@@ -180,7 +180,6 @@ module.exports.updateStateOrderCtr = catchAsyncErrors(
       next(new AppError("this user not found", 400));
     }
     if (req.user.id === order.deliveryName._id.toString()) {
-
       if (order.status === req.body.status) {
         // next(new AppError(` order already ${req.body.status} `, 400));
         message = ` order already ${req.body.status} `;
@@ -192,7 +191,7 @@ module.exports.updateStateOrderCtr = catchAsyncErrors(
       const updatedOrder = await Order.findByIdAndUpdate(
         req.params.idOrder,
         { $set: { ...req.body } },
-        { new: true ,runValidators: true}
+        { new: true, runValidators: true }
       );
       if (req.body.status === "delivered") {
         const updatedUser = await User.findByIdAndUpdate(
@@ -212,16 +211,14 @@ module.exports.updateStateOrderCtr = catchAsyncErrors(
         // await updatedUser.save();
       }
 
+      await updatedOrder.save();
 
-       await updatedOrder.save();
-
-      
-       const newnote = await Notification.create({
+      const newnote = await Notification.create({
         deliveryName: order.deliveryName._id,
         order: order._id,
-        status:updatedOrder.status,
+        status: updatedOrder.status,
       });
-console.log(newnote)
+      console.log(newnote);
 
       res.status(200).json(updatedOrder);
     } else {
