@@ -21,6 +21,8 @@ module.exports.CreateOrderCtr = catchAsyncErrors(async (req, res, next) => {
   if (!delivery) {
     return next(new AppError("this delivery is not found"));
   }
+  // const randomSerial = Math.floor(10000 + Math.random() * 90000).toString();
+  // console.log(randomSerial)
   const order = new Order({
     nameClint: req.body.nameClint,
     phone: req.body.phone,
@@ -35,6 +37,7 @@ module.exports.CreateOrderCtr = catchAsyncErrors(async (req, res, next) => {
     deliveryName: req.body.deliveryName,
     total: req.body.count * req.body.unitPrice,
     adminCreator: req.user.id,
+    // serialNumber:randomSerial
   });
   await order.save();
   res.status(201).json({ message: "your order added successfully", order });

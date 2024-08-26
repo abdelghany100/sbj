@@ -128,7 +128,7 @@ module.exports.changeWalletCtr = catchAsyncErrors(async (req, res, next) => {
 
   // 5. Delete the old profile if exist
     if(user.profilePhoto ){
-      await cloudinaryRemoveImage(user.profilePhoto.publicId)
+      // await cloudinaryRemoveImage(user.profilePhoto.publicId)
       const oldImagePath = path.join(__dirname, `..${user.profilePhoto}`);
     if (fs.existsSync(oldImagePath)) {
       fs.unlinkSync(oldImagePath); 

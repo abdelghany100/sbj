@@ -27,6 +27,8 @@ module.exports.deleteFavoriteCtr = catchAsyncErrors(async (req, res, next) => {
     user: req.user.id,
     order: req.params.idOrder,
   });
+  console.log(req.params.idOrder)
+  console.log(favorite)
   if (!favorite) {
     next(new AppError("this favorite not found", 400));
   }
