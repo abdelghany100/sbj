@@ -8,9 +8,9 @@ const {
   const {getAllFavoriteCtr , deleteFavoriteCtr , addFavoriteCtr, getSingleFavoriteCtr } = require("../controller/FavoriteController");
 const { validateLoginUser } = require("../models/User");
 
-router.route("/").get(verifyTokenAndAdminOrUser , getAllFavoriteCtr)
-router.route("/:idOrder").delete( verifyTokenAndAdminOrUser , deleteFavoriteCtr)
-router.route("/:idOrder").post( verifyTokenAndAdminOrUser , addFavoriteCtr)
-router.route("/:idOrder").get( verifyTokenAndAdminOrUser , getSingleFavoriteCtr)
+router.route("/").get(verifyToken , getAllFavoriteCtr)
+router.route("/:idOrder").delete( verifyToken , deleteFavoriteCtr)
+router.route("/:id").post(verifyToken ,   addFavoriteCtr)
+router.route("/:id").get( verifyToken , getSingleFavoriteCtr)
 
 module.exports = router;

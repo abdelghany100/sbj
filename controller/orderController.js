@@ -4,6 +4,7 @@ const { validateCreateOrder, Order } = require("../models/Order");
 const { User } = require("../models/User");
 const { trusted } = require("mongoose");
 const { Notification } = require("../models/Notification");
+const { Favorite } = require("../models/Favorite");
 /**-------------------------------------
  * @desc create New order
  * @router /api/order
@@ -120,19 +121,21 @@ module.exports.getSingleOrderCtr = catchAsyncErrors(async (req, res, next) => {
 module.exports.deleteOrderCtr = catchAsyncErrors(async (req, res, next) => {
   const order = await Order.findById(req.body.id);
 
-  if (
-    req.user.id === order.deliveryName._id.toString() ||
-    req.user.superAdmin
-  ) {
-    next(new AppError("not allowed, only Admin creator or Admin", 400));
-  }
-
   if (!order) {
     next(new AppError("this order not found", 400));
   }
+  if (
+    req.user.id === order.adminCreator._id.toString() ||
+    req.user.superAdmin
+  ) {
+    await Order.findByIdAndDelete(req.body.id),
+      await Favorite.deleteMany({ order: order._id });
+      res.status(200).json({ message: "order delete successful" });
 
-  await Order.findByIdAndDelete(req.body.id),
-    res.status(200).json({ message: "order delete successful" });
+  } else {
+    next(new AppError("not allowed, only Admin creator or Admin", 400));
+  }
+
 });
 
 /**-------------------------------------

@@ -27,13 +27,12 @@ module.exports.deleteFavoriteCtr = catchAsyncErrors(async (req, res, next) => {
     user: req.user.id,
     order: req.params.idOrder,
   });
-  console.log(req.params.idOrder)
-  console.log(favorite)
+  console.log(req.params.idOrder);
+  console.log(favorite);
   if (!favorite) {
     next(new AppError("this favorite not found", 400));
   }
-  console.log(favorite.user._id.toString());
-  console.log(req.user.id);
+
   if (favorite.user._id.toString() != req.user.id) {
     next(new AppError("not allowed, only user himsylf", 401));
   }
@@ -47,23 +46,36 @@ module.exports.deleteFavoriteCtr = catchAsyncErrors(async (req, res, next) => {
  * @access public
  -------------------------------------*/
 module.exports.addFavoriteCtr = catchAsyncErrors(async (req, res, next) => {
-  const favorite = await Favorite.findOne({
-    user: req.user.id,
-    order: req.params.idOrder,
-  });
+  const order = await Order.findById(req.params.id);
 
-  if (favorite) {
-    return next(new AppError("Order is already in your favorites", 400));
+  if (!order) {
+    return next(new AppError("this order not found", 400));
   }
 
-  // If not, add it to the favorites
-  await Favorite.create({
-    user: req.user.id,
-    order: req.params.idOrder,
-  });
-  res.status(200).json({ message: "add to favorite  successfully" });
-});
 
+  if (
+    order.deliveryName._id.toString() === req.user.id ||
+    order.adminCreator._id.toString() === req.user.id
+  ) {
+    const favorite = await Favorite.findOne({
+      user: req.user.id,
+      order: req.params.id,
+    });
+
+    if (favorite) {
+      return next(new AppError("Order is already in your favorites", 400));
+    }
+
+    // If not, add it to the favorites
+    await Favorite.create({
+      user: req.user.id,
+      order: req.params.id,
+    });
+    res.status(200).json({ message: "add to favorite  successfully" });
+  }else{
+    return next(new AppError("not allowed only delivery or admin for this order", 400));
+  }
+});
 
 /**-------------------------------------
  * @desc   Get single order getSingleOrderCtr
@@ -71,23 +83,23 @@ module.exports.addFavoriteCtr = catchAsyncErrors(async (req, res, next) => {
  * @method GET
  * @access private (only admin or user himself)
  -------------------------------------*/
- module.exports.getSingleFavoriteCtr = catchAsyncErrors(async (req, res, next) => {
-  const favorite = await Favorite.findById(req.params.idOrder);
-  if (!favorite) {
-    next(new AppError("this order not found in favorite", 400));
-  }
+module.exports.getSingleFavoriteCtr = catchAsyncErrors(
+  async (req, res, next) => {
+    const favorite = await Favorite.findById(req.params.id);
+    if (!favorite) {
+      next(new AppError("this order not found in favorite", 400));
+    }
 
-  console.log(favorite.user._id.toString())
-  const user = await User.findById(req.user.id);
-  if (!user) {
-    next(new AppError("this user not found", 400));
+    console.log(favorite.user._id.toString());
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      next(new AppError("this user not found", 400));
+    }
+    if (req.user.id === favorite.user._id.toString()) {
+      return res.status(200).json({ favorite });
+    } else {
+      next(new AppError("not allowed, only delivery himself or Admin", 400));
+    }
+    // return order
   }
-  if (
-    req.user.id === favorite.user._id.toString() 
-  ) {
-    return res.status(200).json({ favorite });
-  } else {
-    next(new AppError("not allowed, only delivery himself or Admin", 400));
-  }
-  // return order
-});
+);
